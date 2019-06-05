@@ -1,0 +1,59 @@
+import urllib.request
+import urllib.error
+import time
+import json
+
+http_url = 'https://api-cn.faceplusplus.com/facepp/v3/compare'
+key = "nc0VyKXXH6RycAuOuQ8y10omYDoYBh3-"
+secret = "DliX-ISx3VukPPeNkrRr5zQB2TREcsDj"
+image_url1='https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1559700981&di=f40d5ca570d582d41c80904b2b65c047&imgtype=jpg&er=1&src=http%3A%2F%2F02imgmini.eastday.com%2Fmobile%2F20180930%2F20180930112251_a18f14fe5b76203cf9622141ffb20261_1.jpeg'
+image_url2='https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1559106209459&di=3b27cf940f865361c87ac0ca2041b51f&imgtype=0&src=http%3A%2F%2Fwww.c-ps.net%2Fuploads%2Fallimg%2F141110%2F18-14111015354N24.jpg'
+
+boundary = '----------%s' % hex(int(time.time() * 1000))
+data = []
+data.append('--%s' % boundary)
+data.append('Content-Disposition: form-data; name="%s"\r\n' % 'api_key')
+data.append(key)
+data.append('--%s' % boundary)
+data.append('Content-Disposition: form-data; name="%s"\r\n' % 'api_secret')
+data.append(secret)
+data.append('--%s' % boundary)
+data.append('Content-Disposition: form-data; name="%s"\r\n' % 'image_url1')
+data.append(image_url1)
+data.append('--%s' % boundary)
+data.append('Content-Disposition: form-data; name="%s"\r\n' % 'image_url2')
+data.append(image_url2)
+data.append('--%s' % boundary)
+data.append('Content-Disposition: form-data; name="%s"\r\n' % 'return_landmark')
+data.append('1')
+data.append('--%s' % boundary)
+data.append('Content-Disposition: form-data; name="%s"\r\n' % 'return_attributes')
+data.append(
+    "gender,age,smiling,headpose,facequality,blur,eyestatus,emotion,ethnicity,beauty,mouthstatus,eyegaze,skinstatus")
+data.append('--%s--\r\n' % boundary)
+
+for i, d in enumerate(data):
+    if isinstance(d, str):
+        data[i] = d.encode('utf-8')
+
+http_body = b'\r\n'.join(data)
+
+# build http request
+req = urllib.request.Request(url=http_url, data=http_body)
+
+# header
+req.add_header('Content-Type', 'multipart/form-data; boundary=%s' % boundary)
+
+try:
+    # post data to server
+    resp = urllib.request.urlopen(req, timeout=5)
+    # get response
+    qrcont = resp.read()
+    # if you want to load as json, you should decode first,
+    # for example: json.loads(qrount.decode('utf-8'))
+    print(qrcont.decode('utf-8'))
+except urllib.error.HTTPError as e:
+    print(e.read().decode('utf-8'))
+res=json.loads(qrcont.decode('utf-8'))
+confidence=res['confidence']
+print('两张图片是同一个人的置信度为',confidence)
